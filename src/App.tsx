@@ -20,32 +20,32 @@ function App() {
       greenWingDetails: {
         returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
         greenWingUserId: "C21652",
-        shipTo: {
-          name: "Branch Office",
-          firstName: "John",
-          lastName: "Smith",
-          street: "1 West Main St",
-          city: "1 West Main St",
-          state: "1 West Main St",
-          postalCode: "1 West Main St",
-          country: "United States",
-        },
-        billTo: {
-          name: "Branch Office",
-          firstName: "John",
-          lastName: "Smith",
-          street: "1 West Main St",
-          city: "1 West Main St",
-          state: "1 West Main St",
-          postalCode: "1 West Main St",
-          country: "United States",
-        },
+        // shipTo: {
+        //   name: "Branch Office",
+        //   firstName: "dipesh",
+        //   lastName: "dhawan",
+        //   street: "1 West Main St",
+        //   city: "1 West Main St",
+        //   state: "1 West Main St",
+        //   postalCode: "1 West Main St",
+        //   country: "United States",
+        // },
+        // billTo: {
+        //   name: "Branch Office",
+        //   firstName: "dipesh",
+        //   lastName: "dhawan",
+        //   street: "1 West Main St",
+        //   city: "1 West Main St",
+        //   state: "1 West Main St",
+        //   postalCode: "1 West Main St",
+        //   country: "United States",
+        // },
         phoneNumber: "111-222-3333",
-        firstName: "John",
-        lastName: "Smith",
+        firstName: "dipesh",
+        lastName: "dhawan",
         user: {
-          email: "ankittestuser+12@yopmail.com",
-          userName: "ankittestuser+12@yopmail.com",
+          email: "dipesh+001@yopmail.com",
+          userName: "dipesh+001@yopmail.com",
         },
         emailOptIn: false,
         smsOptIn: false,
@@ -57,7 +57,12 @@ function App() {
     axios
       .post<User[]>(
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
-        payload
+        payload,
+        {
+          headers: {
+            ClientSecret: "550e8400-e29b-41d4-a716-446655440000",
+          },
+        }
       )
       .then((response: { data: any }) => {
         console.log(response.data);
@@ -69,9 +74,6 @@ function App() {
       .catch((error: any) => {
         console.error("Error fetching users:", error);
         message.error("Punch in failed!");
-      })
-      .finally(() => {
-        setLoading(false);
       });
   };
 
@@ -86,8 +88,14 @@ function App() {
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/validate-token",
         payload
       )
-      .then((response: { data: any }) => {
-        console.log(response.data);
+      .then((response: any) => {
+        const { data } = response?.data;
+        console.log({ response });
+        if (data?.user?.isVerified) {
+          const finalUrl = `http://localhost:3000/validate-sso?loginToken=${data?.token}&redirectUrl=${data?.redirect}&cartId=${data?.cartData?.CartId}&cartNumber=${data?.cartData?.CartNumber}`;
+          console.log("url", finalUrl);
+          window.location.href = finalUrl;
+        }
       })
       .catch((error: any) => {
         console.error("Error fetching users:", error);
@@ -110,19 +118,60 @@ function App() {
 
       {/* Content */}
       <Content style={{ padding: "2rem", textAlign: "center" }}>
-        <Spin spinning={loading} tip="Processing...">
-          <Button
-            type="primary"
-            size="large"
-            onClick={punchInHandler}
-            style={{ marginTop: "2rem" }}
-          >
-            Punch In
-          </Button>
-        </Spin>
+        <Button
+          type="primary"
+          size="large"
+          onClick={punchInHandler}
+          style={{ marginTop: "2rem" }}
+          loading={loading}
+        >
+          Punch In
+        </Button>
       </Content>
     </Layout>
   );
 }
 
 export default App;
+
+// {
+//     "token": "hZZnR4it28f4ppLj1ERfxG6ysqDYJY0%2bsGzb29%2bxeMfX%2bXFbGpdyOTgQVzXfroHoU4i5XKx%2bBxFFAc1LJJOg0Kh5JUyM%2b%2bIw21wbOcTWJLHXBbd6yRJvLHh6uTuGNy6Wwc6p%2bcGY8aypoqjiGnn3So7ncdWfRMUWiaQ%2fLoeAatE%3d",
+//     "redirect": "/cart",
+//     "cartData": {
+//         "CartId": "a2204e3e-f36b-1410-8105-0052b4902e8f",
+//         "CartItemId": "ea204e3e-f36b-1410-8105-0052b4902e8f",
+//         "Status": true,
+//         "CartNumber": "C-04092025-11520"
+//     },
+//     "user": {
+//         "userId": 5016,
+//         "accountId": 0,
+//         "accountCode": null,
+//         "accountName": null,
+//         "aspNetUserId": "9eabf36c-bd59-48e7-a689-250c253974ff",
+//         "firstName": "John",
+//         "lastName": "Smith",
+//         "roleName": "Customer",
+//         "phoneNumber": "111-222-3333",
+//         "email": "ankittestuser+4@yopmail.com",
+//         "isActive": false,
+//         "externalId": null,
+//         "userName": "ankittestuser+4@yopmail.com",
+//         "isVerified": true,
+//         "emailOptIn": false,
+//         "smsOptIn": false,
+//         "customerPaymentGUID": null,
+//         "perOrderLimit": 0,
+//         "annualOrderLimit": 0,
+//         "annualBalanceOrderAmount": 0,
+//         "publishCatalogId": 8,
+//         "catalogCode": "KleenRiteTestCatalog",
+//         "profiles": [],
+//         "accountExternalId": null,
+//         "custom1": null,
+//         "custom2": null,
+//         "custom3": null,
+//         "custom4": null,
+//         "custom5": null
+//     }
+// }
