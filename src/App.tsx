@@ -39,7 +39,7 @@ export interface IGreenWingRequestModel {
   greenWingRequestDetails: IGreenWingDetails;
 }
 
-interface IGreenWingUserModel {
+export interface IGreenWingUserModel {
   userName: string | null;
   loginAccessToken: string | null;
   isNewUser: boolean;
@@ -48,8 +48,14 @@ interface IGreenWingUserModel {
   errorMessage: string | null;
 }
 
-interface IGreenWingUserResponseModel {
-  GreenWingResponseDetails: IGreenWingUserModel;
+export interface IGreenWingUserResponseModel {
+  greenWingResponseDetails: IGreenWingUserModel;
+}
+
+export interface IResponseModel {
+  status: string;
+  message: string;
+  data: IGreenWingUserResponseModel;
 }
 
 const App: React.FC = () => {
@@ -85,7 +91,7 @@ const App: React.FC = () => {
     };
 
     try {
-      const response = await axios.post<IGreenWingUserResponseModel>(
+      const response = await axios.post<IResponseModel>(
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
         payload,
         {
@@ -95,7 +101,7 @@ const App: React.FC = () => {
         }
       );
 
-      const userData = response.data.GreenWingResponseDetails;
+      const userData = response.data.data.greenWingResponseDetails;
 
       if (userData?.loginAccessToken) {
         message.success("Punch in successful!");
@@ -151,13 +157,13 @@ const App: React.FC = () => {
     const payload = {
       LoginToken: token,
       GreenWingDetails: {
-        Type: "EditRequest",
+        Type: "SetupRequest", // EditRequest or SetupRequest
         ReturnURL: "https://eprohub.gwpunchout.com/returnurl/",
         CustomerId: "C21652",
 
         SelectedItem: {
           item: {
-            SKU: "ABC123",
+            SKU: "140444",
             Name: "Sample Product Name",
             CategoryCode: "SampleCategory",
             CategoryName: "Sample Category",
