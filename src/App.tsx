@@ -99,7 +99,7 @@ const App: React.FC = () => {
 
       if (userData?.loginAccessToken) {
         message.success("Punch in successful!");
-        await validateTokenHandler(userData.loginAccessToken);
+        validateTokenHandler(userData.loginAccessToken);
       } else {
         message.error(userData?.errorMessage || "Punch in failed!");
       }
@@ -111,50 +111,127 @@ const App: React.FC = () => {
     }
   };
 
-  const validateTokenHandler = async (token: string) => {
+  const validateTokenHandler = (token: string) => {
+    const products = [
+      {
+        SKU: "KW55",
+        AddOnSKUListModel: [],
+        PersonalizedDetails: [],
+        ProductType: "SimpleProduct",
+        AddToCartChildItems: [],
+        CustomData: [],
+        GroupCode: "",
+        AdditionalCost: [],
+        Quantity: 1,
+      },
+      {
+        SKU: "SNCP21953VI",
+        AddOnSKUListModel: [],
+        PersonalizedDetails: [],
+        ProductType: "SimpleProduct",
+        AddToCartChildItems: [],
+        CustomData: [],
+        GroupCode: "",
+        AdditionalCost: [],
+        Quantity: 1,
+      },
+      {
+        SKU: "140444",
+        AddOnSKUListModel: [],
+        PersonalizedDetails: [],
+        ProductType: "SimpleProduct",
+        AddToCartChildItems: [],
+        CustomData: [],
+        GroupCode: "",
+        AdditionalCost: [],
+        Quantity: 2,
+      },
+    ];
+
     const payload = {
-      token,
-      domainName: "http://localhost:3000",
+      LoginToken: token,
+      GreenWingDetails: {
+        Type: "EditRequest",
+        ReturnURL: "https://eprohub.gwpunchout.com/returnurl/",
+        CustomerId: "C21652",
+
+        SelectedItem: {
+          item: {
+            SKU: "ABC123",
+            Name: "Sample Product Name",
+            CategoryCode: "SampleCategory",
+            CategoryName: "Sample Category",
+          },
+        },
+
+        CartData: {
+          item: products,
+        },
+
+        // User: {
+        //   Email: "john.smith@acmetestcompany.org",
+        //   Username: "john.smith@acmetestcompany.org",
+        // },
+      },
     };
 
-    try {
-      const response = await axios.post(
+    axios
+      .post(
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/validate-token",
         payload
-      );
+      )
+      .then((response: any) => {
+        const { data } = response?.data;
+        console.log({ response });
+        const navigationURL = data?.GWTSSO?.LoggedInURL;
+        console.log("url", navigationURL);
 
-      const { data } = response?.data;
-
-      if (data?.user?.isVerified) {
-        const finalUrl = `http://localhost:3000/validate-sso?loginToken=${data?.token}&redirectUrl=${data?.redirect}&cartId=${data?.cartData?.CartId}&cartNumber=${data?.cartData?.CartNumber}`;
-        window.location.href = finalUrl;
-      }
-    } catch (error) {
-      console.error("Error validating token:", error);
-    }
+        if (navigationURL) {
+          //navigate to znode page
+          window.location.href = navigationURL;
+        }
+      })
+      .catch((error: any) => {
+        console.error("Error fetching users:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Header style={{ background: "#001529", display: "flex", alignItems: "center" }}>
+      <Header
+        style={{ background: "#001529", display: "flex", alignItems: "center" }}
+      >
         <Title level={3} style={{ color: "white", margin: 0 }}>
           GreenWing Login Portal
         </Title>
       </Header>
 
-      <Content style={{ padding: "2rem", display: "flex", justifyContent: "center" }}>
+      <Content
+        style={{ padding: "2rem", display: "flex", justifyContent: "center" }}
+      >
         <Card style={{ width: 800, padding: "1.5rem" }}>
           <Title level={4}>Punch In Details</Title>
           <Form layout="vertical">
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Return URL">
-                  <Input value={formData.returnUrl} onChange={(e) => handleChange("returnUrl", e.target.value)} />
+                  <Input
+                    value={formData.returnUrl}
+                    onChange={(e) => handleChange("returnUrl", e.target.value)}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item label="GreenWing User ID">
-                  <Input value={formData.greenWingUserId} onChange={(e) => handleChange("greenWingUserId", e.target.value)} />
+                  <Input
+                    value={formData.greenWingUserId}
+                    onChange={(e) =>
+                      handleChange("greenWingUserId", e.target.value)
+                    }
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -162,12 +239,18 @@ const App: React.FC = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="First Name">
-                  <Input value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} />
+                  <Input
+                    value={formData.firstName}
+                    onChange={(e) => handleChange("firstName", e.target.value)}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item label="Last Name">
-                  <Input value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} />
+                  <Input
+                    value={formData.lastName}
+                    onChange={(e) => handleChange("lastName", e.target.value)}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -175,12 +258,21 @@ const App: React.FC = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Email">
-                  <Input type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} />
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item label="Phone Number">
-                  <Input value={formData.phoneNumber} onChange={(e) => handleChange("phoneNumber", e.target.value)} />
+                  <Input
+                    value={formData.phoneNumber}
+                    onChange={(e) =>
+                      handleChange("phoneNumber", e.target.value)
+                    }
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -188,12 +280,18 @@ const App: React.FC = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Email Opt-In">
-                  <Switch checked={formData.emailOptIn} onChange={(checked) => handleChange("emailOptIn", checked)} />
+                  <Switch
+                    checked={formData.emailOptIn}
+                    onChange={(checked) => handleChange("emailOptIn", checked)}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item label="SMS Opt-In">
-                  <Switch checked={formData.smsOptIn} onChange={(checked) => handleChange("smsOptIn", checked)} />
+                  <Switch
+                    checked={formData.smsOptIn}
+                    onChange={(checked) => handleChange("smsOptIn", checked)}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -201,12 +299,22 @@ const App: React.FC = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Profile Code">
-                  <Input value={formData.profileCode} onChange={(e) => handleChange("profileCode", e.target.value)} />
+                  <Input
+                    value={formData.profileCode}
+                    onChange={(e) =>
+                      handleChange("profileCode", e.target.value)
+                    }
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item label="Account Code">
-                  <Input value={formData.accountCode} onChange={(e) => handleChange("accountCode", e.target.value)} />
+                  <Input
+                    value={formData.accountCode}
+                    onChange={(e) =>
+                      handleChange("accountCode", e.target.value)
+                    }
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -214,12 +322,21 @@ const App: React.FC = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Portal ID">
-                  <Input type="number" value={formData.portalId} onChange={(e) => handleChange("portalId", Number(e.target.value))} />
+                  <Input
+                    type="number"
+                    value={formData.portalId}
+                    onChange={(e) =>
+                      handleChange("portalId", Number(e.target.value))
+                    }
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item label="Base URL">
-                  <Input value={formData.baseUrl} onChange={(e) => handleChange("baseUrl", e.target.value)} />
+                  <Input
+                    value={formData.baseUrl}
+                    onChange={(e) => handleChange("baseUrl", e.target.value)}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -227,12 +344,20 @@ const App: React.FC = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Is Web Store User">
-                  <Switch checked={formData.isWebStoreUser} onChange={(checked) => handleChange("isWebStoreUser", checked)} />
+                  <Switch
+                    checked={formData.isWebStoreUser}
+                    onChange={(checked) =>
+                      handleChange("isWebStoreUser", checked)
+                    }
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item label="Locale Code">
-                  <Input value={formData.localeCode} onChange={(e) => handleChange("localeCode", e.target.value)} />
+                  <Input
+                    value={formData.localeCode}
+                    onChange={(e) => handleChange("localeCode", e.target.value)}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -240,12 +365,21 @@ const App: React.FC = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Store Code">
-                  <Input value={formData.storeCode} onChange={(e) => handleChange("storeCode", e.target.value)} />
+                  <Input
+                    value={formData.storeCode}
+                    onChange={(e) => handleChange("storeCode", e.target.value)}
+                  />
                 </Form.Item>
               </Col>
             </Row>
 
-            <Button type="primary" block size="large" onClick={punchInHandler} loading={loading}>
+            <Button
+              type="primary"
+              block
+              size="large"
+              onClick={punchInHandler}
+              loading={loading}
+            >
               {loading ? "Processing..." : "Punch In"}
             </Button>
           </Form>
@@ -253,7 +387,14 @@ const App: React.FC = () => {
       </Content>
 
       {loading && (
-        <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
           <Spin size="large" />
         </div>
       )}
