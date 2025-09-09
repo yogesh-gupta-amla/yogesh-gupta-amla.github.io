@@ -1,61 +1,91 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Layout, Button, Spin, Typography, message } from "antd";
+import {
+  Layout,
+  Button,
+  Typography,
+  message,
+  Input,
+  Card,
+  Spin,
+  Switch,
+  Form,
+  Row,
+  Col,
+} from "antd";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
-type User = {
-  id: number;
-  name: string;
-};
+export interface IGreenWingDetails {
+  returnUrl: string;
+  greenWingUserId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  emailOptIn: boolean;
+  smsOptIn: boolean;
+  profileCode: string;
+  accountCode: string;
+  portalId?: number;
+  baseUrl?: string;
+  isWebStoreUser?: boolean;
+  localeCode?: string;
+  storeCode?: string;
+}
 
-function App() {
+export interface IGreenWingRequestModel {
+  greenWingRequestDetails: IGreenWingDetails;
+}
+
+interface IGreenWingUserModel {
+  userName: string | null;
+  loginAccessToken: string | null;
+  isNewUser: boolean;
+  isSuccess: boolean;
+  hasError: boolean;
+  errorMessage: string | null;
+}
+
+interface IGreenWingUserResponseModel {
+  GreenWingResponseDetails: IGreenWingUserModel;
+}
+
+const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
-  const punchInHandler = () => {
+  const [formData, setFormData] = useState<IGreenWingDetails>({
+    returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
+    greenWingUserId: "C21652",
+    firstName: "Abhi",
+    lastName: "Raut",
+    email: "abhi.r@test.com",
+    phoneNumber: "1112223333",
+    emailOptIn: false,
+    smsOptIn: false,
+    profileCode: "",
+    accountCode: "CustomPrice",
+    // portalId: 0,
+    // baseUrl: "http://localhost:3000",
+    // isWebStoreUser: true,
+    // localeCode: "en-US",
+    // storeCode: "KR",
+  });
+
+  const handleChange = (field: keyof IGreenWingDetails, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const punchInHandler = async () => {
     setLoading(true);
 
-    const payload = {
-      greenWingDetails: {
-        returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
-        greenWingUserId: "C21652",
-        // shipTo: {
-        //   name: "Branch Office",
-        //   firstName: "dipesh",
-        //   lastName: "dhawan",
-        //   street: "1 West Main St",
-        //   city: "1 West Main St",
-        //   state: "1 West Main St",
-        //   postalCode: "1 West Main St",
-        //   country: "United States",
-        // },
-        // billTo: {
-        //   name: "Branch Office",
-        //   firstName: "dipesh",
-        //   lastName: "dhawan",
-        //   street: "1 West Main St",
-        //   city: "1 West Main St",
-        //   state: "1 West Main St",
-        //   postalCode: "1 West Main St",
-        //   country: "United States",
-        // },
-        phoneNumber: "111-222-3333",
-        firstName: "dipesh",
-        lastName: "dhawan",
-        user: {
-          email: "dipesh+001@yopmail.com",
-          userName: "dipesh+001@yopmail.com",
-        },
-        emailOptIn: false,
-        smsOptIn: false,
-        profileCode: "nullorEmpty",
-        accountCode: "KleenRiteAccount",
-      },
+    const payload: IGreenWingRequestModel = {
+      greenWingRequestDetails: formData,
     };
 
-    axios
-      .post<User[]>(
+    try {
+      const response = await axios.post<IGreenWingUserResponseModel>(
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
         payload,
         {
@@ -63,115 +93,172 @@ function App() {
             ClientSecret: "550e8400-e29b-41d4-a716-446655440000",
           },
         }
-      )
-      .then((response: { data: any }) => {
-        console.log(response.data);
-        validateTokenHandler(
-          response?.data?.data?.LoginToken?.loginToken || ""
-        );
+      );
+
+      const userData = response.data.GreenWingResponseDetails;
+
+      if (userData?.loginAccessToken) {
         message.success("Punch in successful!");
-      })
-      .catch((error: any) => {
-        console.error("Error fetching users:", error);
-        message.error("Punch in failed!");
-      });
+        await validateTokenHandler(userData.loginAccessToken);
+      } else {
+        message.error(userData?.errorMessage || "Punch in failed!");
+      }
+    } catch (error) {
+      console.error("Error during punch in:", error);
+      message.error("Punch in failed!");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const validateTokenHandler = (token: string) => {
+  const validateTokenHandler = async (token: string) => {
     const payload = {
-      token: token,
+      token,
       domainName: "http://localhost:3000",
     };
 
-    axios
-      .post<User[]>(
+    try {
+      const response = await axios.post(
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/validate-token",
         payload
-      )
-      .then((response: any) => {
-        const { data } = response?.data;
-        console.log({ response });
-        if (data?.user?.isVerified) {
-          const finalUrl = `http://localhost:3000/validate-sso?loginToken=${data?.token}&redirectUrl=${data?.redirect}&cartId=${data?.cartData?.CartId}&cartNumber=${data?.cartData?.CartNumber}`;
-          console.log("url", finalUrl);
-          window.location.href = finalUrl;
-        }
-      })
-      .catch((error: any) => {
-        console.error("Error fetching users:", error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      );
+
+      const { data } = response?.data;
+
+      if (data?.user?.isVerified) {
+        const finalUrl = `http://localhost:3000/validate-sso?loginToken=${data?.token}&redirectUrl=${data?.redirect}&cartId=${data?.cartData?.CartId}&cartNumber=${data?.cartData?.CartNumber}`;
+        window.location.href = finalUrl;
+      }
+    } catch (error) {
+      console.error("Error validating token:", error);
+    }
   };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* Header */}
-      <Header
-        style={{ background: "#001529", display: "flex", alignItems: "center" }}
-      >
+      <Header style={{ background: "#001529", display: "flex", alignItems: "center" }}>
         <Title level={3} style={{ color: "white", margin: 0 }}>
-          Greenwing
+          GreenWing Login Portal
         </Title>
       </Header>
 
-      {/* Content */}
-      <Content style={{ padding: "2rem", textAlign: "center" }}>
-        <Button
-          type="primary"
-          size="large"
-          onClick={punchInHandler}
-          style={{ marginTop: "2rem" }}
-          loading={loading}
-        >
-          Punch In
-        </Button>
+      <Content style={{ padding: "2rem", display: "flex", justifyContent: "center" }}>
+        <Card style={{ width: 800, padding: "1.5rem" }}>
+          <Title level={4}>Punch In Details</Title>
+          <Form layout="vertical">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Return URL">
+                  <Input value={formData.returnUrl} onChange={(e) => handleChange("returnUrl", e.target.value)} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="GreenWing User ID">
+                  <Input value={formData.greenWingUserId} onChange={(e) => handleChange("greenWingUserId", e.target.value)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="First Name">
+                  <Input value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Last Name">
+                  <Input value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Email">
+                  <Input type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Phone Number">
+                  <Input value={formData.phoneNumber} onChange={(e) => handleChange("phoneNumber", e.target.value)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Email Opt-In">
+                  <Switch checked={formData.emailOptIn} onChange={(checked) => handleChange("emailOptIn", checked)} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="SMS Opt-In">
+                  <Switch checked={formData.smsOptIn} onChange={(checked) => handleChange("smsOptIn", checked)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Profile Code">
+                  <Input value={formData.profileCode} onChange={(e) => handleChange("profileCode", e.target.value)} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Account Code">
+                  <Input value={formData.accountCode} onChange={(e) => handleChange("accountCode", e.target.value)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Portal ID">
+                  <Input type="number" value={formData.portalId} onChange={(e) => handleChange("portalId", Number(e.target.value))} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Base URL">
+                  <Input value={formData.baseUrl} onChange={(e) => handleChange("baseUrl", e.target.value)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Is Web Store User">
+                  <Switch checked={formData.isWebStoreUser} onChange={(checked) => handleChange("isWebStoreUser", checked)} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Locale Code">
+                  <Input value={formData.localeCode} onChange={(e) => handleChange("localeCode", e.target.value)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Store Code">
+                  <Input value={formData.storeCode} onChange={(e) => handleChange("storeCode", e.target.value)} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Button type="primary" block size="large" onClick={punchInHandler} loading={loading}>
+              {loading ? "Processing..." : "Punch In"}
+            </Button>
+          </Form>
+        </Card>
       </Content>
+
+      {loading && (
+        <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
+          <Spin size="large" />
+        </div>
+      )}
     </Layout>
   );
-}
+};
 
 export default App;
-
-// {
-//     "token": "hZZnR4it28f4ppLj1ERfxG6ysqDYJY0%2bsGzb29%2bxeMfX%2bXFbGpdyOTgQVzXfroHoU4i5XKx%2bBxFFAc1LJJOg0Kh5JUyM%2b%2bIw21wbOcTWJLHXBbd6yRJvLHh6uTuGNy6Wwc6p%2bcGY8aypoqjiGnn3So7ncdWfRMUWiaQ%2fLoeAatE%3d",
-//     "redirect": "/cart",
-//     "cartData": {
-//         "CartId": "a2204e3e-f36b-1410-8105-0052b4902e8f",
-//         "CartItemId": "ea204e3e-f36b-1410-8105-0052b4902e8f",
-//         "Status": true,
-//         "CartNumber": "C-04092025-11520"
-//     },
-//     "user": {
-//         "userId": 5016,
-//         "accountId": 0,
-//         "accountCode": null,
-//         "accountName": null,
-//         "aspNetUserId": "9eabf36c-bd59-48e7-a689-250c253974ff",
-//         "firstName": "John",
-//         "lastName": "Smith",
-//         "roleName": "Customer",
-//         "phoneNumber": "111-222-3333",
-//         "email": "ankittestuser+4@yopmail.com",
-//         "isActive": false,
-//         "externalId": null,
-//         "userName": "ankittestuser+4@yopmail.com",
-//         "isVerified": true,
-//         "emailOptIn": false,
-//         "smsOptIn": false,
-//         "customerPaymentGUID": null,
-//         "perOrderLimit": 0,
-//         "annualOrderLimit": 0,
-//         "annualBalanceOrderAmount": 0,
-//         "publishCatalogId": 8,
-//         "catalogCode": "KleenRiteTestCatalog",
-//         "profiles": [],
-//         "accountExternalId": null,
-//         "custom1": null,
-//         "custom2": null,
-//         "custom3": null,
-//         "custom4": null,
-//         "custom5": null
-//     }
-// }
