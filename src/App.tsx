@@ -304,76 +304,12 @@ const App: React.FC = () => {
 
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item label="Profile Code">
-                  <Input
-                    value={formData.profileCode}
-                    onChange={(e) =>
-                      handleChange("profileCode", e.target.value)
-                    }
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
                 <Form.Item label="Account Code">
                   <Input
                     value={formData.accountCode}
                     onChange={(e) =>
                       handleChange("accountCode", e.target.value)
                     }
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Portal ID">
-                  <Input
-                    type="number"
-                    value={formData.portalId}
-                    onChange={(e) =>
-                      handleChange("portalId", Number(e.target.value))
-                    }
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="Base URL">
-                  <Input
-                    value={formData.baseUrl}
-                    onChange={(e) => handleChange("baseUrl", e.target.value)}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Is Web Store User">
-                  <Switch
-                    checked={formData.isWebStoreUser}
-                    onChange={(checked) =>
-                      handleChange("isWebStoreUser", checked)
-                    }
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="Locale Code">
-                  <Input
-                    value={formData.localeCode}
-                    onChange={(e) => handleChange("localeCode", e.target.value)}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Store Code">
-                  <Input
-                    value={formData.storeCode}
-                    onChange={(e) => handleChange("storeCode", e.target.value)}
                   />
                 </Form.Item>
               </Col>
