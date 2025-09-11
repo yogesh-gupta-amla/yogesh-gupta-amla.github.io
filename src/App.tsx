@@ -66,7 +66,7 @@ const App: React.FC = () => {
     greenWingUserId: "C21652",
     firstName: "Abhi",
     lastName: "Raut",
-    email: "abhi.r@test.com",
+    email: "abhi.r@yopmail.com",
     phoneNumber: "1112223333",
     emailOptIn: false,
     smsOptIn: false,
@@ -118,6 +118,7 @@ const App: React.FC = () => {
   };
 
   const validateTokenHandler = (token: string) => {
+    setLoading(true);
     const products = [
       {
         SKU: "KW55",
@@ -157,13 +158,13 @@ const App: React.FC = () => {
     const payload = {
       LoginToken: token,
       GreenWingDetails: {
-        Type: "SetupRequest", // EditRequest or SetupRequest
+        Type: "EditRequest", // EditRequest or SetupRequest
         ReturnURL: "https://eprohub.gwpunchout.com/returnurl/",
         CustomerId: "C21652",
 
         SelectedItem: {
           item: {
-            SKU: "140444",
+            SKU: "SNCP21953VI",
             Name: "Sample Product Name",
             CategoryCode: "SampleCategory",
             CategoryName: "Sample Category",
@@ -189,7 +190,7 @@ const App: React.FC = () => {
       .then((response: any) => {
         const { data } = response?.data;
         console.log({ response });
-        const navigationURL = data?.GWTSSO?.LoggedInURL;
+        const navigationURL = data?.GreenwingSSO?.LoggedInURL;
         console.log("url", navigationURL);
 
         if (navigationURL) {
