@@ -49,7 +49,7 @@ const PunchOutPage: React.FC = () => {
     <Layout style={{ minHeight: "100vh" }}>
       <Content style={{ padding: "2rem" }}>
         <Card style={{ width: "100%", padding: "1.5rem" }}>
-          <Title level={4}>Punch Out JSON</Title>
+          <Title level={4}>Place Order Request Body</Title>
 
           <Editor
             height="400px"
@@ -80,7 +80,7 @@ const PunchOutPage: React.FC = () => {
               style={{ marginTop: "1rem" }}
               onClick={handlePunchOut}
             >
-              Punch Out
+              Place Order
             </Button>
           </Space>
         </Card>

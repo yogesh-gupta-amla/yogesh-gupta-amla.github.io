@@ -28,8 +28,8 @@ const App: React.FC = () => {
             <Link to="/punchin">
               <Button type="primary">Punch In</Button>
             </Link>
-            <Link to="/punchout">
-              <Button type="primary">Punch Out</Button>
+            <Link to="/placeOrder">
+              <Button type="primary">Place Order</Button>
             </Link>
           </Space>
         </Header>
@@ -37,7 +37,7 @@ const App: React.FC = () => {
 
       <Routes>
         <Route path="/punchin" element={<PunchInPage />} />
-        <Route path="/punchout" element={<PunchOutPage />} />
+        <Route path="/placeOrder" element={<PunchOutPage />} />
       </Routes>
     </Router>
   );
