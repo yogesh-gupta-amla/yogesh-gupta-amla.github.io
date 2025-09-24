@@ -66,17 +66,17 @@ const PunchInPage: React.FC = () => {
     greenWingUserId: "C21652",
     firstName: "Abhi",
     lastName: "Raut",
-    email: "abhi.r@yopmail.com",
+    email: "abhi.raut@yopmail.com",
     phoneNumber: "1112223333",
     emailOptIn: false,
     smsOptIn: false,
     profileCode: "",
     accountCode: "CustomPrice",
-    // portalId: 0,
-    // baseUrl: "http://localhost:3000",
-    // isWebStoreUser: true,
-    // localeCode: "en-US",
-    // storeCode: "KR",
+    baseUrl: "webstore-klrt-dv.amla.io",
+    isWebStoreUser: true,
+    localeCode: "en-US",
+    storeCode: "KleenRite",
+    portalId: 10,
   });
 
   const handleChange = (field: keyof IGreenWingDetails, value: any) => {
@@ -122,63 +122,63 @@ const PunchInPage: React.FC = () => {
     setLoading(true);
     const products = [
       {
-        SKU: "KW55",
-        AddOnSKUListModel: [],
-        PersonalizedDetails: [],
-        ProductType: "SimpleProduct",
-        AddToCartChildItems: [],
-        CustomData: [],
-        GroupCode: "",
-        AdditionalCost: [],
-        Quantity: 1,
+        sku: "KW55",
+        addOnSkuListModel: [],
+        personalizedDetails: [],
+        productType: "SimpleProduct",
+        addToCartChildItems: [],
+        customData: [],
+        groupCode: "",
+        additionalCost: [],
+        quantity: 1,
       },
       {
-        SKU: "SNCP21953VI",
-        AddOnSKUListModel: [],
-        PersonalizedDetails: [],
-        ProductType: "SimpleProduct",
-        AddToCartChildItems: [],
-        CustomData: [],
-        GroupCode: "",
-        AdditionalCost: [],
-        Quantity: 1,
+        sku: "SNCP21953VI",
+        addOnSkuListModel: [],
+        personalizedDetails: [],
+        productType: "SimpleProduct",
+        addToCartChildItems: [],
+        customData: [],
+        groupCode: "",
+        additionalCost: [],
+        quantity: 1,
       },
       {
-        SKU: "140444",
-        AddOnSKUListModel: [],
-        PersonalizedDetails: [],
-        ProductType: "SimpleProduct",
-        AddToCartChildItems: [],
-        CustomData: [],
-        GroupCode: "",
-        AdditionalCost: [],
-        Quantity: 2,
+        sku: "140444",
+        addOnSkuListModel: [],
+        personalizedDetails: [],
+        productType: "SimpleProduct",
+        addToCartChildItems: [],
+        customData: [],
+        groupCode: "",
+        additionalCost: [],
+        quantity: 2,
       },
     ];
 
     const payload = {
-      LoginToken: token,
-      GreenWingDetails: {
-        Type: "SetupRequest", // EditRequest or SetupRequest
-        ReturnURL: "https://eprohub.gwpunchout.com/returnurl/",
-        CustomerId: "C21652",
+      loginToken: token,
+      greenWingDetails: {
+        type: "EditRequest", // editRequest or SetupRequest
+        returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
+        customerId: "C21652",
 
-        SelectedItem: {
+        selectedItem: {
           item: {
-            SKU: "499",
-            Name: "Sample Product Name",
-            CategoryCode: "SampleCategory",
-            CategoryName: "Sample Category",
+            sku: "499",
+            name: "Sample Product Name",
+            categoryCode: "SampleCategory",
+            categoryName: "Sample Category",
           },
         },
 
-        CartData: {
+        cartData: {
           item: products,
         },
 
-        // User: {
-        //   Email: "john.smith@acmetestcompany.org",
-        //   Username: "john.smith@acmetestcompany.org",
+        // user: {
+        //   email: "john.smith@acmetestcompany.org",
+        //   username: "john.smith@acmetestcompany.org",
         // },
       },
     };
@@ -191,7 +191,7 @@ const PunchInPage: React.FC = () => {
       .then((response: any) => {
         const { data } = response?.data;
         console.log({ response });
-        const navigationURL = data?.GreenwingSSO?.LoggedInURL;
+        const navigationURL = data?.greenwingSSO?.loggedInURL;
         console.log("url", navigationURL);
 
         if (navigationURL) {

@@ -11,16 +11,75 @@ const PunchOutPage: React.FC = () => {
   const [jsonInput, setJsonInput] = useState<string>(
     JSON.stringify(
       {
-        LoginToken: "sample-token",
-        GreenWingDetails: {
-          Type: "PunchOutRequest",
-          CustomerId: "C21652",
-          CartData: {
+        greenWingPreOrderProcessDetails: {
+          greenWingUserID: "C216534",
+          email: "abhi.raut@yopmail.com",
+          shipTo: {
+            displayName: "Shipping",
+            firstName: "a",
+            lastName: "r",
+            phoneNumber: 123123123,
+            streetAddress1: "aaa",
+            streetAddress2: "aa",
+            cityName: "NewYork",
+            stateCode: "NY",
+            postalCode: "10001",
+            countryCode: "US",
+          },
+          billTo: {
+            displayName: "Billing",
+            firstName: "a",
+            lastName: "r",
+            phoneNumber: 123123123,
+            streetAddress1: "aaa",
+            streetAddress2: "aa",
+            cityName: "NewYork",
+            stateCode: "NY",
+            postalCode: "10001",
+            countryCode: "US",
+          },
+          cartNumber: "C-24092025-6190",
+          cartData: {
             item: [
-              { SKU: "KW55", Quantity: 1 },
-              { SKU: "SNCP21953VI", Quantity: 1 },
+              {
+                sku: "KW55",
+                addOnSkuListModel: [],
+                personalizedDetails: [],
+                productType: "SimpleProduct",
+                addToCartChildItems: [],
+                customData: [],
+                groupCode: "",
+                additionalCost: [],
+                quantity: 1,
+              },
+              {
+                sku: "SNCP21953VI",
+                addOnSkuListModel: [],
+                personalizedDetails: [],
+                productType: "SimpleProduct",
+                addToCartChildItems: [],
+                customData: [],
+                groupCode: "",
+                additionalCost: [],
+                quantity: 1,
+              },
+              {
+                sku: "140444",
+                addOnSkuListModel: [],
+                personalizedDetails: [],
+                productType: "SimpleProduct",
+                addToCartChildItems: [],
+                customData: [],
+                groupCode: "",
+                additionalCost: [],
+                quantity: 2,
+              },
             ],
           },
+          paymentCode: "PurchaseOrder",
+          portalCode: "KleenRite",
+          portalId: 10,
+          localeCode: "en-Us",
         },
       },
       null,
@@ -33,7 +92,7 @@ const PunchOutPage: React.FC = () => {
       const parsedData = JSON.parse(jsonInput);
 
       const response = await axios.post(
-        "http://localhost:3000/api/kleen-rite/greenwing/punch-out",
+        "http://localhost:3000/api/kleen-rite/greenwing/create-order",
         parsedData
       );
 
