@@ -92,7 +92,7 @@ const PunchInPage: React.FC = () => {
 
     try {
       const response = await axios.post<IResponseModel>(
-        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
+        "/api/kleen-rite/greenwing/punch-in/initiate-session",
         payload,
         {
           headers: {
@@ -159,7 +159,7 @@ const PunchInPage: React.FC = () => {
     const payload = {
       loginToken: token,
       greenWingDetails: {
-        type: "EditRequest", // editRequest or SetupRequest
+        type: "SetupRequest", // editRequest or SetupRequest
         returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
         customerId: "C21652",
 
@@ -184,10 +184,7 @@ const PunchInPage: React.FC = () => {
     };
 
     axios
-      .post(
-        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/validate-token",
-        payload
-      )
+      .post("/api/kleen-rite/greenwing/punch-in/validate-token", payload)
       .then((response: any) => {
         const { data } = response?.data;
         console.log({ response });
