@@ -18,8 +18,9 @@ const { Content } = Layout;
 const { Title } = Typography;
 
 export interface IGreenWingDetails {
+  provider: string;
   returnUrl: string;
-  greenWingUserId: string;
+  externalUserId: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -28,15 +29,10 @@ export interface IGreenWingDetails {
   smsOptIn: boolean;
   profileCode: string;
   accountCode: string;
-  portalId?: number;
-  baseUrl?: string;
-  isWebStoreUser?: boolean;
-  localeCode?: string;
-  storeCode?: string;
 }
 
 export interface IGreenWingRequestModel {
-  greenWingRequestDetails: IGreenWingDetails;
+  greenWingUserDetails: IGreenWingDetails;
 }
 
 export interface IGreenWingUserModel {
@@ -48,35 +44,31 @@ export interface IGreenWingUserModel {
   errorMessage: string | null;
 }
 
-export interface IGreenWingUserResponseModel {
-  greenWingResponseDetails: IGreenWingUserModel;
-}
+// export interface IGreenWingUserResponseModel {
+//   greenWingResponseDetails: IGreenWingUserModel;
+// }
 
 export interface IResponseModel {
   status: string;
   message: string;
-  data: IGreenWingUserResponseModel;
+  data: IGreenWingUserModel;
 }
 
 const PunchInPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<IGreenWingDetails>({
+    provider: "GreenWing",
     returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
-    greenWingUserId: "C21652",
+    externalUserId: "C21652",
     firstName: "Abhi",
     lastName: "Raut",
-    email: "abhi.raut@yopmail.com",
+    email: "test-user+1@yopmail.com",
     phoneNumber: "1112223333",
     emailOptIn: false,
     smsOptIn: false,
     profileCode: "",
     accountCode: "CustomPrice",
-    baseUrl: "webstore-klrt-dv.amla.io",
-    isWebStoreUser: true,
-    localeCode: "en-US",
-    storeCode: "KleenRite",
-    portalId: 10,
   });
 
   const handleChange = (field: keyof IGreenWingDetails, value: any) => {
@@ -87,12 +79,12 @@ const PunchInPage: React.FC = () => {
     setLoading(true);
 
     const payload: IGreenWingRequestModel = {
-      greenWingRequestDetails: formData,
+      greenWingUserDetails: formData,
     };
 
     try {
       const response = await axios.post<IResponseModel>(
-        "/api/kleen-rite/greenwing/punch-in/initiate-session",
+        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
         payload,
         {
           headers: {
@@ -101,7 +93,7 @@ const PunchInPage: React.FC = () => {
         }
       );
 
-      const userData = response.data.data.greenWingResponseDetails;
+      const userData = response.data.data;
 
       if (userData?.loginAccessToken) {
         message.success("Punch in successful!");
@@ -157,38 +149,31 @@ const PunchInPage: React.FC = () => {
     ];
 
     const payload = {
+      buyerCookie: "test123",
       loginToken: token,
-      greenWingDetails: {
-        type: "SetupRequest", // editRequest or SetupRequest
+      punchInDetails: {
+        type: "EditRequest", // EditRequest or SetupRequest
         returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
-        customerId: "C21652",
-
+        externalUserId: "C21652",
         selectedItem: {
-          item: {
-            sku: "499",
-            name: "Sample Product Name",
-            categoryCode: "SampleCategory",
-            categoryName: "Sample Category",
-          },
+          sku: "499",
+          name: "Black + Decker 2.4 Amp Corded 5 in Random Orbit Sander",
+          categoryCode: "1186",
+          categoryName: "Sample Category",
         },
-
-        cartData: {
-          item: products,
-        },
-
-        // user: {
-        //   email: "john.smith@acmetestcompany.org",
-        //   username: "john.smith@acmetestcompany.org",
-        // },
+        cartData: products,
       },
     };
 
     axios
-      .post("/api/kleen-rite/greenwing/punch-in/validate-token", payload)
+      .post(
+        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/validate-token",
+        payload
+      )
       .then((response: any) => {
         const { data } = response?.data;
         console.log({ response });
-        const navigationURL = data?.greenwingSSO?.loggedInURL;
+        const navigationURL = data?.loggedInURL;
         console.log("url", navigationURL);
 
         if (navigationURL) {
@@ -224,9 +209,9 @@ const PunchInPage: React.FC = () => {
               <Col span={12}>
                 <Form.Item label="GreenWing User ID">
                   <Input
-                    value={formData.greenWingUserId}
+                    value={formData.externalUserId}
                     onChange={(e) =>
-                      handleChange("greenWingUserId", e.target.value)
+                      handleChange("externalUserId", e.target.value)
                     }
                   />
                 </Form.Item>
