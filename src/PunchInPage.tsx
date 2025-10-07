@@ -12,6 +12,7 @@ import {
   Spin,
   notification,
 } from "antd";
+import { APPLICATION_URL } from "./constant";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -112,7 +113,7 @@ const PunchInPage: React.FC = () => {
     try {
       const parsedSession = JSON.parse(sessionPayload);
       const initiateResponse = await axios.post(
-        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
+        `${APPLICATION_URL}/api/kleen-rite/greenwing/punch-in/initiate-session`,
         parsedSession,
         {
           headers: { ClientSecret: "550e8400-e29b-41d4-a716-446655440000" },
@@ -143,7 +144,7 @@ const PunchInPage: React.FC = () => {
       const parsedLogin = JSON.parse(updatedLoginPayload);
 
       const loginResponse = await axios.post(
-        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/login",
+        `${APPLICATION_URL}/api/kleen-rite/greenwing/punch-in/login`,
         parsedLogin
       );
 

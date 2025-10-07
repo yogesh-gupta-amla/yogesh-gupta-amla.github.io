@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Layout, Typography, Button, Card, message, Space } from "antd";
 import Editor from "@monaco-editor/react";
+import { APPLICATION_URL } from "./constant";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -92,7 +93,7 @@ const PunchOutPage: React.FC = () => {
       const parsedData = JSON.parse(jsonInput);
 
       const response = await axios.post(
-        "http://localhost:3000/api/kleen-rite/greenwing/create-order",
+        `${APPLICATION_URL}/api/kleen-rite/greenwing/create-order`,
         parsedData
       );
 
