@@ -5,7 +5,7 @@ module.exports = function (app) {
     "/api",
     createProxyMiddleware({
       //   target: "http://localhost:3000",
-      target: "https://https://webstore-klrt-np.znodecorp.com",
+      target: "https://webstore-klrt-dv.amla.io",
       changeOrigin: true,
       secure: false,
       logLevel: "debug", // 👈 add debug logs
