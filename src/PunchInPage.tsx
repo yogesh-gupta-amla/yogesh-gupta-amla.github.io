@@ -1,321 +1,210 @@
 import React, { useState } from "react";
 import axios from "axios";
+import Editor from "@monaco-editor/react";
 import {
   Layout,
   Button,
   Typography,
   message,
-  Input,
   Card,
-  Spin,
-  Switch,
-  Form,
   Row,
   Col,
+  Spin,
 } from "antd";
 
 const { Content } = Layout;
 const { Title } = Typography;
 
-export interface IGreenWingDetails {
-  provider: string;
-  returnUrl: string;
-  externalUserId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  emailOptIn: boolean;
-  smsOptIn: boolean;
-  profileCode: string;
-  accountCode: string;
-}
-
-export interface IGreenWingRequestModel {
-  greenWingUserDetails: IGreenWingDetails;
-}
-
-export interface IGreenWingUserModel {
-  userName: string | null;
-  loginAccessToken: string | null;
-  isNewUser: boolean;
-  isSuccess: boolean;
-  hasError: boolean;
-  errorMessage: string | null;
-}
-
-// export interface IGreenWingUserResponseModel {
-//   greenWingResponseDetails: IGreenWingUserModel;
-// }
-
-export interface IResponseModel {
-  status: string;
-  message: string;
-  data: IGreenWingUserModel;
-}
-
 const PunchInPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [editDisabled, setEditDisabled] = useState(false);
 
-  const [formData, setFormData] = useState<IGreenWingDetails>({
-    provider: "GreenWing",
-    returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
-    externalUserId: "C21652",
-    firstName: "Abhi",
-    lastName: "Raut",
-    email: "test-user+1@yopmail.com",
-    phoneNumber: "1112223333",
-    emailOptIn: false,
-    smsOptIn: false,
-    profileCode: "",
-    accountCode: "CustomPrice",
-  });
+  const [sessionPayload, setSessionPayload] = useState(
+    JSON.stringify(
+      {
+        greenWingUserDetails: {
+          provider: "GreenWing",
+          returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
+          externalUserId: "C21652",
+          firstName: "Abhi",
+          lastName: "Raut",
+          email: "test-user+1@yopmail.com",
+          phoneNumber: "1112223333",
+          emailOptIn: false,
+          smsOptIn: false,
+          profileCode: "",
+          accountCode: "CustomPrice",
+        },
+      },
+      null,
+      2
+    )
+  );
 
-  const handleChange = (field: keyof IGreenWingDetails, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const [loginPayload, setLoginPayload] = useState(
+    JSON.stringify(
+      {
+        buyerCookie: "test123",
+        loginToken: "<ACCESS_TOKEN_FROM_INITIATE>",
+        punchInDetails: {
+          type: "EditRequest",
+          returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
+          externalUserId: "C21652",
+          selectedItem: {
+            sku: "499",
+            name: "Black + Decker 2.4 Amp Corded 5 in Random Orbit Sander",
+            categoryCode: "1186",
+            categoryName: "Sample Category",
+          },
+          cartData: [
+            {
+              sku: "KW55",
+              quantity: 1,
+              price: 0,
+              unitPrice: 0,
+              uom: "EA",
+              addOnSkuListModel: [],
+            },
+            {
+              sku: "SNCP21953VI",
+              quantity: 1,
+              price: 0,
+              unitPrice: 0,
+              uom: "EA",
+              addOnSkuListModel: [],
+            },
+            {
+              sku: "140444",
+              quantity: 2,
+              price: 0,
+              unitPrice: 0,
+              uom: "EA",
+              addOnSkuListModel: [],
+            },
+          ],
+        },
+      },
+      null,
+      2
+    )
+  );
 
-  const punchInHandler = async () => {
+  const runPunchInFlow = async () => {
     setLoading(true);
-
-    const payload: IGreenWingRequestModel = {
-      greenWingUserDetails: formData,
-    };
+    setEditDisabled(true);
 
     try {
-      const response = await axios.post<IResponseModel>(
+      // Step 1: Initiate Session
+      const parsedSession = JSON.parse(sessionPayload);
+      const initiateResponse = await axios.post(
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
-        payload,
+        parsedSession,
         {
-          headers: {
-            ClientSecret: "550e8400-e29b-41d4-a716-446655440000",
-          },
+          headers: { ClientSecret: "550e8400-e29b-41d4-a716-446655440000" },
         }
       );
 
-      const userData = response.data.data;
+      const token = initiateResponse.data?.data?.loginAccessToken;
+      if (!token) throw new Error("No token received from initiate session");
 
-      if (userData?.loginAccessToken) {
-        message.success("Punch in successful!");
-        validateTokenHandler(userData.loginAccessToken);
+      message.success("Session initiated successfully!");
+
+      // Step 2: Replace token and call login
+      const updatedLoginPayload = loginPayload.replace(
+        "<ACCESS_TOKEN_FROM_INITIATE>",
+        token
+      );
+      setLoginPayload(updatedLoginPayload); // visually show token
+      const parsedLogin = JSON.parse(updatedLoginPayload);
+
+      const loginResponse = await axios.post(
+        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/login",
+        parsedLogin
+      );
+
+      const navigationURL = loginResponse.data?.data?.loggedInURL;
+      if (navigationURL) {
+        message.success("Login successful! Redirecting...");
+        window.location.href = navigationURL;
       } else {
-        message.error(userData?.errorMessage || "Punch in failed!");
+        message.warning("Login successful, but redirect URL missing!");
       }
-    } catch (error) {
-      console.error("Error during punch in:", error);
-      message.error("Punch in failed!");
+    } catch (error: any) {
+      console.error("PunchIn Flow Failed:", error);
+      message.error(error?.message || "Something went wrong!");
+      setEditDisabled(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const validateTokenHandler = (token: string) => {
-    console.log("token", token);
-    setLoading(true);
-    const products = [
-      {
-        sku: "KW55",
-        addOnSkuListModel: [],
-        personalizedDetails: [],
-        productType: "SimpleProduct",
-        addToCartChildItems: [],
-        customData: [],
-        groupCode: "",
-        additionalCost: [],
-        quantity: 1,
-      },
-      {
-        sku: "SNCP21953VI",
-        addOnSkuListModel: [],
-        personalizedDetails: [],
-        productType: "SimpleProduct",
-        addToCartChildItems: [],
-        customData: [],
-        groupCode: "",
-        additionalCost: [],
-        quantity: 1,
-      },
-      {
-        sku: "140444",
-        addOnSkuListModel: [],
-        personalizedDetails: [],
-        productType: "SimpleProduct",
-        addToCartChildItems: [],
-        customData: [],
-        groupCode: "",
-        additionalCost: [],
-        quantity: 2,
-      },
-    ];
-
-    const payload = {
-      buyerCookie: "test123",
-      loginToken: token,
-      punchInDetails: {
-        type: "EditRequest", // EditRequest or SetupRequest
-        returnUrl: "https://eprohub.gwpunchout.com/returnurl/",
-        externalUserId: "C21652",
-        selectedItem: {
-          sku: "499",
-          name: "Black + Decker 2.4 Amp Corded 5 in Random Orbit Sander",
-          categoryCode: "1186",
-          categoryName: "Sample Category",
-        },
-        cartData: products,
-      },
-    };
-
-    axios
-      .post(
-        "http://localhost:3000/api/kleen-rite/greenwing/punch-in/validate-token",
-        payload
-      )
-      .then((response: any) => {
-        const { data } = response?.data;
-        console.log({ response });
-        const navigationURL = data?.loggedInURL;
-        console.log("url", navigationURL);
-
-        if (navigationURL) {
-          //navigate to znode page
-          window.location.href = navigationURL;
-        }
-      })
-      .catch((error: any) => {
-        console.error("Error fetching users:", error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Content
-        style={{ padding: "2rem", display: "flex", justifyContent: "center" }}
-      >
-        <Card style={{ width: 800, padding: "1.5rem" }}>
-          <Title level={4}>Punch In Details</Title>
-          <Form layout="vertical">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Return URL">
-                  <Input
-                    value={formData.returnUrl}
-                    onChange={(e) => handleChange("returnUrl", e.target.value)}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="GreenWing User ID">
-                  <Input
-                    value={formData.externalUserId}
-                    onChange={(e) =>
-                      handleChange("externalUserId", e.target.value)
-                    }
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+    <Layout style={{ minHeight: "100vh", padding: "2rem" }}>
+      <Content>
+        <Row gutter={[24, 24]}>
+          <Col span={12}>
+            <Card title={<Title level={4}>Initiate Session Payload</Title>}>
+              <Editor
+                height="400px"
+                defaultLanguage="json"
+                value={sessionPayload}
+                onChange={(value) => setSessionPayload(value || "")}
+                options={{
+                  minimap: { enabled: false },
+                  readOnly: editDisabled,
+                  domReadOnly: editDisabled, // fully disable typing and selection
+                  cursorStyle: "block",
+                }}
+              />
+            </Card>
+          </Col>
 
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="First Name">
-                  <Input
-                    value={formData.firstName}
-                    onChange={(e) => handleChange("firstName", e.target.value)}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="Last Name">
-                  <Input
-                    value={formData.lastName}
-                    onChange={(e) => handleChange("lastName", e.target.value)}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+          <Col span={12}>
+            <Card title={<Title level={4}>Login Payload</Title>}>
+              <p>
+                <i>{"// SetupRequest or EditRequest"}</i>
+              </p>
+              <Editor
+                height="400px"
+                defaultLanguage="json"
+                value={loginPayload}
+                onChange={(value) => setLoginPayload(value || "")}
+                options={{
+                  minimap: { enabled: false },
+                  readOnly: editDisabled,
+                  domReadOnly: editDisabled, // prevents typing & focus
+                  cursorStyle: "block",
+                }}
+              />
+            </Card>
+          </Col>
+        </Row>
 
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Email">
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="Phone Number">
-                  <Input
-                    value={formData.phoneNumber}
-                    onChange={(e) =>
-                      handleChange("phoneNumber", e.target.value)
-                    }
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Email Opt-In">
-                  <Switch
-                    checked={formData.emailOptIn}
-                    onChange={(checked) => handleChange("emailOptIn", checked)}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="SMS Opt-In">
-                  <Switch
-                    checked={formData.smsOptIn}
-                    onChange={(checked) => handleChange("smsOptIn", checked)}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Account Code">
-                  <Input
-                    value={formData.accountCode}
-                    onChange={(e) =>
-                      handleChange("accountCode", e.target.value)
-                    }
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Button
-              type="primary"
-              block
-              size="large"
-              onClick={punchInHandler}
-              loading={loading}
-            >
-              {loading ? "Processing..." : "Punch In"}
-            </Button>
-          </Form>
-        </Card>
-      </Content>
-
-      {loading && (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <Spin size="large" />
+        <div style={{ marginTop: "2rem", textAlign: "center" }}>
+          <Button
+            type="primary"
+            size="large"
+            onClick={runPunchInFlow}
+            loading={loading}
+            disabled={loading}
+          >
+            Run Punch In Flow
+          </Button>
         </div>
-      )}
+
+        {loading && (
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            <Spin size="large" />
+          </div>
+        )}
+      </Content>
     </Layout>
   );
 };
