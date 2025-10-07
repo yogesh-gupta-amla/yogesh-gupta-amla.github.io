@@ -234,16 +234,6 @@ const PunchInPage: React.FC = () => {
             >
               Run Punch In Flow
             </Button>
-
-            {/* ✅ Test Button */}
-            <Button
-              style={{ marginLeft: 10 }}
-              onClick={() =>
-                openNotificationWithIcon("success", "Notification works!")
-              }
-            >
-              Test Notification
-            </Button>
           </div>
 
           {loading && (
