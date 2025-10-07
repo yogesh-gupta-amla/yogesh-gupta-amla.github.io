@@ -10,14 +10,30 @@ import {
   Row,
   Col,
   Spin,
+  notification,
 } from "antd";
 
 const { Content } = Layout;
 const { Title } = Typography;
 
+type NotificationType = "success" | "info" | "warning" | "error";
+
 const PunchInPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [editDisabled, setEditDisabled] = useState(false);
+
+  // ✅ Must render `contextHolder` inside JSX return (top level)
+  const [api, contextHolder] = notification.useNotification();
+
+  const openNotificationWithIcon = (
+    type: NotificationType,
+    messageText: string
+  ) => {
+    api[type]({
+      message: messageText,
+      placement: "topRight", // optional for positioning
+    });
+  };
 
   const [sessionPayload, setSessionPayload] = useState(
     JSON.stringify(
@@ -94,7 +110,6 @@ const PunchInPage: React.FC = () => {
     setEditDisabled(true);
 
     try {
-      // Step 1: Initiate Session
       const parsedSession = JSON.parse(sessionPayload);
       const initiateResponse = await axios.post(
         "http://localhost:3000/api/kleen-rite/greenwing/punch-in/initiate-session",
@@ -104,17 +119,27 @@ const PunchInPage: React.FC = () => {
         }
       );
 
+      console.log("initiateResponse", initiateResponse);
+      const initiateDataPart = initiateResponse?.data?.data;
+      if (initiateDataPart?.hasError) {
+        openNotificationWithIcon(
+          "error",
+          initiateDataPart?.errorMessage || "Something went wrong!"
+        );
+        setEditDisabled(false);
+        return;
+      }
+
       const token = initiateResponse.data?.data?.loginAccessToken;
       if (!token) throw new Error("No token received from initiate session");
 
       message.success("Session initiated successfully!");
 
-      // Step 2: Replace token and call login
       const updatedLoginPayload = loginPayload.replace(
         "<ACCESS_TOKEN_FROM_INITIATE>",
         token
       );
-      setLoginPayload(updatedLoginPayload); // visually show token
+      setLoginPayload(updatedLoginPayload);
       const parsedLogin = JSON.parse(updatedLoginPayload);
 
       const loginResponse = await axios.post(
@@ -122,16 +147,34 @@ const PunchInPage: React.FC = () => {
         parsedLogin
       );
 
+      console.log("loginResponse", loginResponse);
+      const dataPart = loginResponse?.data?.data;
+      if (dataPart?.hasError) {
+        openNotificationWithIcon(
+          "error",
+          dataPart?.errorMessage || "Something went wrong!"
+        );
+        setEditDisabled(false);
+        return;
+      }
+
       const navigationURL = loginResponse.data?.data?.loggedInURL;
       if (navigationURL) {
-        message.success("Login successful! Redirecting...");
+        openNotificationWithIcon("success", "Login successful!");
         window.location.href = navigationURL;
       } else {
-        message.warning("Login successful, but redirect URL missing!");
+        openNotificationWithIcon(
+          "warning",
+          "Login successful, but no redirect URL!"
+        );
+        setEditDisabled(false);
       }
     } catch (error: any) {
       console.error("PunchIn Flow Failed:", error);
-      message.error(error?.message || "Something went wrong!");
+      openNotificationWithIcon(
+        "error",
+        error?.message || "Something went wrong!"
+      );
       setEditDisabled(false);
     } finally {
       setLoading(false);
@@ -139,73 +182,85 @@ const PunchInPage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh", padding: "2rem" }}>
-      <Content>
-        <Row gutter={[24, 24]}>
-          <Col span={12}>
-            <Card title={<Title level={4}>Initiate Session Payload</Title>}>
-              <Editor
-                height="400px"
-                defaultLanguage="json"
-                value={sessionPayload}
-                onChange={(value) => setSessionPayload(value || "")}
-                options={{
-                  minimap: { enabled: false },
-                  readOnly: editDisabled,
-                  domReadOnly: editDisabled, // fully disable typing and selection
-                  cursorStyle: "block",
-                }}
-              />
-            </Card>
-          </Col>
+    <>
+      {/* ✅ Must render here */}
+      {contextHolder}
 
-          <Col span={12}>
-            <Card title={<Title level={4}>Login Payload</Title>}>
-              <p>
-                <i>{"// SetupRequest or EditRequest"}</i>
-              </p>
-              <Editor
-                height="400px"
-                defaultLanguage="json"
-                value={loginPayload}
-                onChange={(value) => setLoginPayload(value || "")}
-                options={{
-                  minimap: { enabled: false },
-                  readOnly: editDisabled,
-                  domReadOnly: editDisabled, // prevents typing & focus
-                  cursorStyle: "block",
-                }}
-              />
-            </Card>
-          </Col>
-        </Row>
+      <Layout style={{ minHeight: "100vh", padding: "2rem" }}>
+        <Content>
+          <Row gutter={[24, 24]}>
+            <Col span={12}>
+              <Card title={<Title level={4}>Initiate Session Payload</Title>}>
+                <Editor
+                  height="400px"
+                  defaultLanguage="json"
+                  value={sessionPayload}
+                  onChange={(value) => setSessionPayload(value || "")}
+                  options={{
+                    minimap: { enabled: false },
+                    readOnly: editDisabled,
+                    domReadOnly: editDisabled,
+                    cursorStyle: "block",
+                  }}
+                />
+              </Card>
+            </Col>
 
-        <div style={{ marginTop: "2rem", textAlign: "center" }}>
-          <Button
-            type="primary"
-            size="large"
-            onClick={runPunchInFlow}
-            loading={loading}
-            disabled={loading}
-          >
-            Run Punch In Flow
-          </Button>
-        </div>
+            <Col span={12}>
+              <Card title={<Title level={4}>Login Payload</Title>}>
+                <Editor
+                  height="400px"
+                  defaultLanguage="json"
+                  value={loginPayload}
+                  onChange={(value) => setLoginPayload(value || "")}
+                  options={{
+                    minimap: { enabled: false },
+                    readOnly: editDisabled,
+                    domReadOnly: editDisabled,
+                    cursorStyle: "block",
+                  }}
+                />
+              </Card>
+            </Col>
+          </Row>
 
-        {loading && (
-          <div
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            <Spin size="large" />
+          <div style={{ marginTop: "2rem", textAlign: "center" }}>
+            <Button
+              type="primary"
+              size="large"
+              onClick={runPunchInFlow}
+              loading={loading}
+              disabled={loading}
+            >
+              Run Punch In Flow
+            </Button>
+
+            {/* ✅ Test Button */}
+            <Button
+              style={{ marginLeft: 10 }}
+              onClick={() =>
+                openNotificationWithIcon("success", "Notification works!")
+              }
+            >
+              Test Notification
+            </Button>
           </div>
-        )}
-      </Content>
-    </Layout>
+
+          {loading && (
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <Spin size="large" />
+            </div>
+          )}
+        </Content>
+      </Layout>
+    </>
   );
 };
 
