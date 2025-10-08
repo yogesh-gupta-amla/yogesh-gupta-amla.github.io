@@ -1,7 +1,7 @@
 {
   "name": "my-app",
   "version": "0.1.0",
-  "homepage": "https://yogesh-gupta-amla.github.io/greenwing-demo",
+  "homepage": "https://yogesh-gupta-amla.github.io",
   "private": true,
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
