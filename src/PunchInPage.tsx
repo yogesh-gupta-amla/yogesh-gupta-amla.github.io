@@ -117,7 +117,6 @@ const PunchInPage: React.FC = () => {
         parsedSession,
         {
           headers: { ClientSecret: "550e8400-e29b-41d4-a716-446655440000" },
-          withCredentials: true,
         }
       );
 
@@ -146,10 +145,7 @@ const PunchInPage: React.FC = () => {
 
       const loginResponse = await axios.post(
         `${APPLICATION_URL}/api/kleen-rite/greenwing/punch-in/login`,
-        parsedLogin,
-        {
-          withCredentials: true,
-        }
+        parsedLogin
       );
 
       console.log("loginResponse", loginResponse);
