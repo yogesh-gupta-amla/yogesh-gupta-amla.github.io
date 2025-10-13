@@ -117,6 +117,7 @@ const PunchInPage: React.FC = () => {
         parsedSession,
         {
           headers: { ClientSecret: "550e8400-e29b-41d4-a716-446655440000" },
+          withCredentials: true,
         }
       );
 
@@ -145,7 +146,10 @@ const PunchInPage: React.FC = () => {
 
       const loginResponse = await axios.post(
         `${APPLICATION_URL}/api/kleen-rite/greenwing/punch-in/login`,
-        parsedLogin
+        parsedLogin,
+        {
+          withCredentials: true,
+        }
       );
 
       console.log("loginResponse", loginResponse);
@@ -160,6 +164,7 @@ const PunchInPage: React.FC = () => {
       }
 
       const navigationURL = loginResponse.data?.data?.loggedInURL;
+      console.log("navigationURL", navigationURL);
       if (navigationURL) {
         openNotificationWithIcon("success", "Login successful!");
         window.location.href = navigationURL;
