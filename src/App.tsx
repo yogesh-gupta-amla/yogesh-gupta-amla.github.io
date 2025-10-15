@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Layout, Space, Typography } from "antd";
 import PunchInPage from "./PunchInPage";
-import PunchOutPage from "./PunchOutPage";
+import PlaceOrder from "./PlaceOrder";
 
 const { Header } = Layout;
 const { Title } = Typography;
@@ -47,7 +47,7 @@ const App: React.FC = () => {
 
       {/* Page content based on ternary */}
       <div style={{ padding: "1rem" }}>
-        {activePage === "punchin" ? <PunchInPage /> : <PunchOutPage />}
+        {activePage === "punchin" ? <PunchInPage /> : <PlaceOrder />}
       </div>
     </Layout>
   );

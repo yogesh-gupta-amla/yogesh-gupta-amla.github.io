@@ -12,7 +12,7 @@ const PunchOutPage: React.FC = () => {
   const [jsonInput, setJsonInput] = useState<string>(
     JSON.stringify(
       {
-        greenWingPreOrderProcessDetails: {
+        greenWingCreateOrderDetails: {
           greenWingUserID: "C216534",
           email: "abhi.raut@yopmail.com",
           shipTo: {
@@ -78,9 +78,8 @@ const PunchOutPage: React.FC = () => {
             ],
           },
           paymentCode: "PurchaseOrder",
-          portalCode: "KleenRite",
-          portalId: 10,
-          localeCode: "en-Us",
+          PoNumber: "123455",
+          ShippingMethodCode: "FreeShipping",
         },
       },
       null,
