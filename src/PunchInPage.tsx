@@ -12,14 +12,14 @@ import {
   Spin,
   notification,
 } from "antd";
-import { APPLICATION_URL } from "./constant";
 
 const { Content } = Layout;
 const { Title } = Typography;
 
 type NotificationType = "success" | "info" | "warning" | "error";
 
-const PunchInPage: React.FC = () => {
+const PunchInPage = (props: any) => {
+  const { environment } = props;
   const [loading, setLoading] = useState(false);
   const [editDisabled, setEditDisabled] = useState(false);
 
@@ -113,7 +113,7 @@ const PunchInPage: React.FC = () => {
     try {
       const parsedSession = JSON.parse(sessionPayload);
       const initiateResponse = await axios.post(
-        `${APPLICATION_URL}/api/kleen-rite/greenwing/punch-in/initiate-session`,
+        `${environment}/api/kleen-rite/greenwing/punch-in/initiate-session`,
         parsedSession,
         {
           headers: { ClientSecret: "550e8400-e29b-41d4-a716-446655440000" },
@@ -144,7 +144,7 @@ const PunchInPage: React.FC = () => {
       const parsedLogin = JSON.parse(updatedLoginPayload);
 
       const loginResponse = await axios.post(
-        `${APPLICATION_URL}/api/kleen-rite/greenwing/punch-in/login`,
+        `${environment}/api/kleen-rite/greenwing/punch-in/login`,
         parsedLogin
       );
 

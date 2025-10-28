@@ -3,12 +3,12 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Layout, Typography, Button, Card, message, Space } from "antd";
 import Editor from "@monaco-editor/react";
-import { APPLICATION_URL } from "./constant";
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 const { Title } = Typography;
 
-const PunchOutPage: React.FC = () => {
+const PunchOutPage = (props: any) => {
+  const { environment } = props;
   const [jsonInput, setJsonInput] = useState<string>(
     JSON.stringify(
       {
@@ -92,7 +92,7 @@ const PunchOutPage: React.FC = () => {
       const parsedData = JSON.parse(jsonInput);
 
       const response = await axios.post(
-        `${APPLICATION_URL}/api/kleen-rite/greenwing/create-order`,
+        `${environment}/api/kleen-rite/greenwing/create-order`,
         parsedData
       );
 

@@ -1,16 +1,46 @@
-import React, { useState } from "react";
-import { Button, Layout, Space, Typography } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Layout, Space, Typography, Select } from "antd";
 import PunchInPage from "./PunchInPage";
 import PlaceOrder from "./PlaceOrder";
 
 const { Header } = Layout;
 const { Title } = Typography;
+const { Option } = Select;
+
+// Environment options
+const ENVIRONMENTS = [
+  {
+    label: "NPR",
+    value: "https://webstore-klrt-npr.amla.io",
+  },
+  {
+    label: "NP",
+    value: "https://webstore-klrt-np.znodecorp.com",
+  },
+  {
+    label: "Dev",
+    value: "https://webstore-klrt-dv.amla.io/",
+  },
+  {
+    label: "Localhost",
+    value: "http://localhost:3000",
+  },
+];
 
 const App: React.FC = () => {
-  // default page is "punchin"
   const [activePage, setActivePage] = useState<"punchin" | "placeOrder">(
     "punchin"
   );
+
+  // persisted environment
+  const [environment, setEnvironment] = useState<string>(
+    localStorage.getItem("selectedEnvironment") || ENVIRONMENTS[0].value
+  );
+
+  // Save to localStorage whenever environment changes
+  useEffect(() => {
+    localStorage.setItem("selectedEnvironment", environment);
+  }, [environment]);
 
   return (
     <Layout>
@@ -27,8 +57,23 @@ const App: React.FC = () => {
           GreenWing Login Portal
         </Title>
 
-        {/* Navigation Buttons */}
+        {/* Right side controls */}
         <Space>
+          {/* Environment Dropdown */}
+          <Select
+            value={environment}
+            onChange={(val) => setEnvironment(val)}
+            style={{ width: 200 }}
+            dropdownMatchSelectWidth={false}
+          >
+            {ENVIRONMENTS.map((env) => (
+              <Option key={env.value} value={env.value}>
+                {env.label}
+              </Option>
+            ))}
+          </Select>
+
+          {/* Navigation Buttons */}
           <Button
             type={activePage === "punchin" ? "primary" : "default"}
             onClick={() => setActivePage("punchin")}
@@ -45,9 +90,13 @@ const App: React.FC = () => {
         </Space>
       </Header>
 
-      {/* Page content based on ternary */}
+      {/* Page content */}
       <div style={{ padding: "1rem" }}>
-        {activePage === "punchin" ? <PunchInPage /> : <PlaceOrder />}
+        {activePage === "punchin" ? (
+          <PunchInPage environment={environment} />
+        ) : (
+          <PlaceOrder environment={environment} />
+        )}
       </div>
     </Layout>
   );
