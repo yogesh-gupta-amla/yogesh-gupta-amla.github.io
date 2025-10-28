@@ -50,7 +50,7 @@ const PunchInPage = (props: any) => {
           emailOptIn: false,
           smsOptIn: false,
           profileCode: "",
-          accountCode: "CustomPrice",
+          accountCode: "Amla",
         },
       },
       null,
